@@ -175,7 +175,6 @@ def importFile(path):
 # Execute a subroutine
 def execute(id, depth, routine, stack=[], subrt={}, imports=[], impid=-1, shouldret=True):
 	qex = lambda r, ret=None: execute(r[0], depth+1, r[1], getSubrtStack(stack, r[2]), subrt.copy(), imports.copy(), getImpId(r, impid), ret if ret is not None else r[2] != '{')
-	# print(routine,'\n---------------------------------------')
 
 	token,last,ifsuccess = '','',False
 	try:
@@ -292,4 +291,3 @@ if __name__ == '__main__':
 		for line in e.traceback[::-1]:
 			print('\t'+line)
 		print(e.type+': '+e.error+' (==END==)')
-		# raise #NOTE: for debugging, should be commented/removed
