@@ -190,7 +190,7 @@ def execute(id, depth, routine, stack=[], subrt={}, imports=[], impid=-1, should
 				if t == '+': stack += [stack.pop(-2)+stack.pop()]
 				if t == '-': stack += [stack.pop(-2)-stack.pop()]
 				if t == '*': stack += [stack.pop(-2)*stack.pop()]
-				if t == '/': stack += [stack.pop(-2)/stack.pop()]
+				if t == '/': stack += [stack.pop(-2)//stack.pop()]
 				if t == '%': stack += [stack.pop(-2)%stack.pop()]
 
 				# Stack operations
