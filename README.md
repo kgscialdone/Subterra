@@ -52,11 +52,12 @@ Example:
 You can also import from inside a subroutine - the import will go out of scope when the subroutine finishes. Since everything happens sequentially, you won't have any issues with orphaned import IDs, though your program may slow down as it has to import every time the subroutine is called. This also allows for imported files to have their own imports - the calling context will have no access to anything imported in the called/imported context.
 
 ## Language Reference
-| Command | Effect |
-| --- | --- |
+| Command | Effect | Version Added |
+| --- | --- | ---: |
 | `~` | Turns everything after it until the end of a line into a comment. |
 | `0-9` | Pushes an integer to the stack. (Note that `15` will push `[15]`, not `[1,5]`) |
 | `+-*/%` | Pops two integers off the stack and pushes the result of the corresponding math operation (using `-`, `[6,2]` -> `[4]`). |
+| `r` | Pops an integer from the stack and pushes a random number between `0` (inclusive) and that number (exclusive). | v1.1 |
 | `$` | Pops the top of the stack and deletes it. |
 | `&` | Duplicates the top of the stack. |
 | `b` | Moves the top of the stack to the bottom. |
