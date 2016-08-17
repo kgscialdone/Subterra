@@ -1,0 +1,12 @@
+~ 99 bottles.
+
+0 {w[0>]{bct1-}$} ~ print function
+1 [1!?(\sc)] ~ plural detector
+2 [1-&?[p]:("No"0#)] ~ Detection for putting in 'no'
+
+100 w {1-&0>} [
+	&p" bottle"0#1#" of beer on the wall,\n"0#
+	&p" bottle"0#1#" of beer,\n"0#
+	"Take one down, pass it around,\n"0#
+	2#" bottle"0#1#" of beer on the wall.\n\n"0#
+]
