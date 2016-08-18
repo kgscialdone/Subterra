@@ -1,7 +1,7 @@
 # Subterra
 Official Python interpreter for the programming language Subterra
 
-Most recent changelog entry: https://github.com/tripl3dogdare/Subterra/blob/master/CHANGELOG.md#v11
+Most recent changelog entry: https://github.com/tripl3dogdare/Subterra/blob/master/CHANGELOG.md
 
 ## What is Subterra?
 Subterra is an esoteric programming language designed to be simple yet powerful. Every instruction in Subterra consists of only one character, it uses a single stack for data storage, and the only datatype it handles is integers (a typical "tarpit language").
