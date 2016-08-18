@@ -1,8 +1,8 @@
 # Subterra Interpreter v1.0
-import sys, re
+import sys, re, random
 
 # Syntax definitions
-validinst = '+-*/%$&bt@se=!<>?:wpci"\'\\{[(#dm.'
+validinst = '+-*/%r$&bt@se=!<>?:wpci"\'\\{[(#dm.'
 tokensep = ' \n\t|;'
 
 # Exception classes
@@ -192,15 +192,16 @@ def execute(id, depth, routine, stack=[], subrt={}, imports=[], impid=-1, should
 				if t == '*': stack += [stack.pop(-2)*stack.pop()]
 				if t == '/': stack += [stack.pop(-2)//stack.pop()]
 				if t == '%': stack += [stack.pop(-2)%stack.pop()]
+				if t == 'r': stack += [random.randrange(stack.pop())]
 
 				# Stack operations
 				if t == '$': stack.pop()
 				if t == '&': stack += [stack.pop()]*2
 				if t == 'b': stack.insert(0, stack.pop())
 				if t == 't': stack += [stack.pop(0)]
-				if t == '@': stack = stack[::-1]
+				if t == '@': stack.reverse()
 				if t == 's': stack += [len(stack)]
-				if t == 'e': stack = []
+				if t == 'e': del stack[:]
 
 				# IO/String operations
 				if t == 'p': print(stack.pop(),end='')

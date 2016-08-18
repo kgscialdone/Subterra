@@ -1,0 +1,53 @@
+~ Rock Paper Scissors in Subterra
+
+~ print and println functions
+0 {w[0>]{bct1-}$}
+1 {0#10c}
+
+~ function to clip input to 1 character
+2 {&0=?(0;1-):{&2<?[$]:{b@w[1>]{b$t1-}$}}}
+
+~ check that character is r, p, or s
+3 [&\r!?{&\s!?{&\p!?(0):(1)}:(1)}:(1)]
+
+~ invalid input error
+4 ("Invalid input!"1# 1)
+
+"Welcome to Rock, Paper, Scissors!"1# ~ welcome prompt
+1 w {1=} (
+	"\nEnter a move: "0#i2# ~ get user input and clip it
+	3rb ~ generate random computer move and move it to bottom
+
+	&0;1-!? { 3#0!? { ~ check that there was no error/validate input
+			~ If input was rock
+			&\r=? [$
+				&0=? ("Draw! (You: rock, CPU: rock)"1#)
+				&1=? ("You lose... (You: rock, CPU: paper)"1#)
+				&2=? ("You win! (You: rock, CPU: scissors)"1#)
+
+				e ~ empty the stack to prevent return
+			]
+
+			~ If input was paper
+			&\p=? [$
+				&0=? ("You win! (You: paper, CPU: rock)"1#)
+				&1=? ("Draw! (You: paper, CPU: paper)"1#)
+				&2=? ("You lose... (You: paper, CPU: scissors)"1#)
+
+				e ~ empty the stack to prevent return
+			]
+
+			~ If input was scissors
+			&\s=? [$
+				&0=? ("You lose... (You: scissors, CPU: rock)"1#)
+				&1=? ("You win! (You: scissors, CPU: paper)"1#)
+				&2=? ("Draw! (You: scissors, CPU: scissors)"1#)
+
+				e ~ empty the stack to prevent return
+			]
+
+			~ Play again?
+			"Play again? (y/n): "0#i2#
+			\n=? (0) : (1)
+	} : 4 } : 4
+)
