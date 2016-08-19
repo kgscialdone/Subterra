@@ -1,7 +1,7 @@
 # Subterra
 Official Python interpreter for the programming language Subterra
 
-Most recent changelog entry: https://github.com/tripl3dogdare/Subterra/blob/master/CHANGELOG.md
+Changelog: https://github.com/tripl3dogdare/Subterra/blob/master/CHANGELOG.md
 
 ## What is Subterra?
 Subterra is an esoteric programming language designed to be simple yet powerful. Every instruction in Subterra consists of only one character, it uses a single stack for data storage, and the only datatype it handles is integers (a typical "tarpit language").
@@ -35,7 +35,7 @@ Subroutines will also push the top of their stack to the calling context's stack
 
 When defining a subroutine normally, it will pop from the stack and use that number as it's ID. It can then be called using that same ID. In certain contexts, subroutines can be defined anonymously; these will not be registered and will be inaccessible from elsewhere in the program. However, you can also use a predefined or imported subroutine anywhere you can use an anonymous one. Subroutine IDs do not need to be sequential.
 
-The really cool thing is that in Subterra, _everything is a subroutine_. This includes the entire program itself - it's technically a subroutine registered as ID -1. While it's not recommended that you call said subroutine, it's left as an option. When defining your own subroutines, however, only positive integers are considered valid IDs.
+The really cool thing is that in Subterra, _everything is a subroutine_. This includes the entire program itself - it's technically a subroutine registered to ID -1. ~~While it's not recommended that you call said subroutine, it's left as an option~~ (Due to issues with the code, this is no longer true; it may return soon). When defining your own subroutines, however, only positive integers are considered valid IDs.
 
 Defined subroutines will go out of scope when their calling context closes, which means you can define a subroutine inside another subroutine, but you can't access the inner from anywhere but inside the outer.
 
