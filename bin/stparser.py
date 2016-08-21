@@ -7,10 +7,10 @@ tokensep = ' \n\t|;'
 
 # Simple token generator
 def tokenGenerator(routine):
-	token,routine = '',list(routine)
+	token,routine = '',list(routine[::-1])
 
 	while routine:
-		c = routine.pop(0)
+		c = routine.pop()
 
 		if c.isdigit():
 			if token and not token.isdigit(): yield token; token = ''
@@ -22,24 +22,18 @@ def tokenGenerator(routine):
 
 			yield c
 			if c == '\\':
-				yield routine.pop(0)
-			elif c == '{':
-				yield getNested(routine,'{','}')
-			elif c == '[':
-				yield getNested(routine,'[',']')
-			elif c == '(':
-				yield getNested(routine,'(',')')
-			elif c == '"':
-				yield getQuoted(routine, '"')
-			elif c == "'":
-				yield getQuoted(routine, "'")
+				yield routine.pop()
+			elif c in '{[(':
+				yield getNested(routine,c,closers[c])
+			elif c in '"\'':
+				yield getQuoted(routine, c)
 	if token: yield token
 
 # Chunk everything between matching brackets together into one token
 def getNested(i,op,cl):
 	nestlevel,token = 0,''
 	while i:
-		c = i.pop(0)
+		c = i.pop()
 
 		if c == op: nestlevel += 1
 		if c == cl:
@@ -54,10 +48,10 @@ def getNested(i,op,cl):
 def getQuoted(i,q):
 	token,end = '',False
 	while i:
-		c = i.pop(0)
+		c = i.pop()
 
 		if c == '\\':
-			lt,e = token,i.pop(0);
+			lt,e = token,i.pop()
 
 			if e in '\\\'"': token += e
 			if e == 'a': token += '\a'
@@ -74,3 +68,10 @@ def getQuoted(i,q):
 		token += c
 	if not end: raise STEndOfRoutineError()
 	return token
+
+# Map of opening brackets to closing brackets
+closers = {
+	'{':'}',
+	'[':']',
+	'(':')'
+}

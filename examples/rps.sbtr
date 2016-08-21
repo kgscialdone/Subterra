@@ -18,7 +18,7 @@
 	"\nEnter a move: "0#i2# ~ get user input and clip it
 	3rb ~ generate random computer move and move it to bottom
 
-	&0;1-!? { 3#0!? { ~ check that there was no error/validate input
+	&0;1-!? { &3#0!? { ~ check that there was no error/validate input
 			~ If input was rock
 			&\r=? [$
 				&0=? ("Draw! (You: rock, CPU: rock)"1#)

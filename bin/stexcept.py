@@ -9,6 +9,14 @@ class STException(Exception):
 		elif isinstance(traceback, list): self.traceback.extend(traceback)
 		else: self.traceback.append(traceback)
 
+	@staticmethod
+	def fromExisting(old, type=None, error=None, traceback=None):
+		new = STException(
+			type if type is not None else old.type,
+			error if error is not None else old.error,
+			traceback if traceback is not None else old.traceback)
+		return new
+
 	def printStackTrace(self):
 		print('\n'+self.type+': '+self.error)
 
@@ -59,19 +67,44 @@ class STFileNotFoundError(STException):
 		super().__init__('FileNotFoundError', 'File does not exist: \'%s\''%error, [])
 
 # Get the traceback info for the given data
-def getTraceback(id, depth, token, routine, impid=-1):
-	origid = id
-	if id == -1: id = '(main)'
-	if id == -2: id = '(anon ? block)'
-	if id == -3: id = '(anon : block)'
-	if id == -4: id = '(anon w cond)'
-	if id == -5: id = '(anon w block)'
-	if id == -6: id = '(import %s)'%impid
-	if id == -9: id = '(unknown)'
-	if impid != -1 and origid != -6: id = '%s:%s'%(impid,id)
+def getTraceback(sub, depth, token, impid=-1):
+	id,rt = idMap.get(sub.id,sub.id),sub.inner
+	if impid != -1:
+		if sub.id != -6: id = '%s:%s'%(impid,id)
+		else: id = id%impid
 
-	if origid in [-1,-6]: routine = ''
-	elif '\n' in routine: routine = ', routine:\n\t\t'+'\n\t\t'.join(routine.split('\n'))
-	else: routine = ', routine: %s'%routine
+	if sub.id in [-1,-6] or impid != -1: rt = ''
+	elif '\n' in rt: rt = ', routine:\n\t\t'+'\n\t\t'.join(rt.split('\n'))
+	else: rt = ', routine: %s'%rt
 
-	return 'at subroutine id %s, depth %s, token %s%s'%(id,depth,token,routine)
+	return 'at %s, depth %s, token %s%s'%(id,depth,token,rt)
+
+# Exception handler for STException/anything in exceptionMap
+# *tbargs is the argument list for getTraceback
+def handleException(e, *tbargs):
+	if isinstance(e, STException):
+		raise STException(e.type, e.error, getTraceback(*tbargs), e.traceback)
+	else:
+		if not isinstance(e, RuntimeError) or 'maximum recursion depth exceeded' in str(e):
+			raise STException.fromExisting(exceptionMap[type(e)](), traceback=getTraceback(*tbargs))
+		raise
+
+# Map of builtin exception types to their overriden types
+# STException is included for easy try...except syntax
+exceptionMap = {
+	IndexError: STEmptyStackError,
+	RuntimeError: STRecursionDepthError,
+	StopIteration: STEndOfRoutineError,
+	STException: None
+}
+
+# Map of subroutine ids to traceback aliases
+idMap = {
+	-1: '(main)',
+	-2: '(anon ? block)',
+	-3: '(anon : block)',
+	-4: '(anon w cond)',
+	-5: '(anon w block)',
+	-6: '(import %s)',
+	-9: '(unknown)',
+}

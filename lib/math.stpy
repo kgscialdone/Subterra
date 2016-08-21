@@ -1,0 +1,49 @@
+# Subterra stdlib - Math
+def _init():
+	global data
+	data = {
+		# Multi-sum function - takes length, then sums everything within that length
+		0: { 'oncall': _sum, 'type': '{' },
+		1: { 'oncall': _sum, 'type': '[' },
+
+		# Multi-subtract function (note: lowest in the stack will be subtracted from last)
+		2: { 'oncall': _dif, 'type': '{' },
+		3: { 'oncall': _dif, 'type': '[' },
+
+		# Multi-multiply function
+		4: { 'oncall': _mul, 'type': '{' },
+		5: { 'oncall': _mul, 'type': '[' },
+
+		# Multi-divide function (note: lowest in the stack will be subtracted from last)
+		6: { 'oncall': _div, 'type': '{' },
+		7: { 'oncall': _div, 'type': '[' },
+
+		# Pow function
+		8: { 'oncall': lambda s,_: s.pop(-2)**s.pop(), 'type': '{' },
+	}
+
+def _sum(stack, data):
+	i = [stack.pop() for _ in range(stack.pop())]
+	while len(i) > 1:
+		i.append(i.pop()+i.pop())
+	return i[0]
+
+def _dif(stack, data):
+	i = [stack.pop() for _ in range(stack.pop())]
+	while len(i) > 1:
+		i.append(i.pop()-i.pop())
+	return i[0]
+
+def _mul(stack, data):
+	i = [stack.pop() for _ in range(stack.pop())]
+	while len(i) > 1:
+		i.append(i.pop()*i.pop())
+	return i[0]
+
+def _div(stack, data):
+	i = [stack.pop() for _ in range(stack.pop())]
+	while len(i) > 1:
+		i.append(i.pop()//i.pop())
+	return i[0]
+
+_init()
