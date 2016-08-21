@@ -111,10 +111,12 @@ if __name__ == '__main__':
 		if len(sys.argv) < 2: raise STCommandLineError('Expected path, got none')
 
 		# Setting up working directories, getting main file, etc.
-		os.chdir(os.path.dirname(sys.argv[1]))
-		prog = stringFromFile(sys.argv[1])
-		if not prog: exit()
-		setStdLibLoc(os.path.dirname(sys.argv[0])+'/../lib/')
+		with open(sys.argv[1]) as f:
+			prog = stringFromFile(file=f)
+			if not prog: exit()
+
+			setStdLibLoc(os.path.dirname(sys.argv[0])+'/../lib/')
+			os.chdir(os.path.dirname(os.path.realpath(f.name)))
 
 		# Execute main file
 		execute(Subroutine(-1, prog, '('))

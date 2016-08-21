@@ -9,12 +9,17 @@ def setStdLibLoc(path):
 	stdlibloc = path
 
 # Convert a file to a string
-def stringFromFile(path):
-	try:
-		with open(path) as f:
-			return re.sub('~.*\n', '\n', f.read())
-	except FileNotFoundError:
-		raise STFileNotFoundError(path)
+def stringFromFile(path=None, file=None):
+	if path is None and file is None: return ''
+
+	if file is None:
+		try:
+			with open(path) as f:
+				return re.sub('~.*\n', '\n', f.read())
+		except FileNotFoundError:
+			raise STFileNotFoundError(path)
+	else:
+		return re.sub('~.*\n', '\n', file.read())
 
 # Import a .sbtr/.stpy file into the given namespace
 def doImport(depth, stack, data):
