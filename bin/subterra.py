@@ -1,128 +1,128 @@
-# Subterra Interpreter v1.0
+# Subterra Interpreter v1.3
 import os, sys, random
-from stexcept import *
 from stparser import tokenGenerator
+from stexcept import *
+from stimport import *
 from struntime import *
 
 # Execute a subroutine
-def execute(id, depth, routine, stack=None, subrt=None, imports=None, impid=-1, shouldret=True):
-	qex = lambda r, ret=None: execute(r.id, depth+1, r.rt, getNewStack(stack, r.op), subrt.copy(), imports.copy(), r.impid, ret if ret is not None else r.op != '{')
-	if stack is None: stack = []
-	if subrt is None: subrt = Subroutines()
-	if imports is None: imports = Imports()
+def execute(sub, depth=0, stack=None, data=None, impid=-1):
+	# Initialize default parameters
+	if stack is None: stack = Stack()
+	if data is None: data = {sub.id:sub,"imports":{}}
 
-	token,last,ifsuccess = '','',False
+	# Helper functions
+	out = lambda o: print(o,end='')
+	strin = lambda i: [stack.pushall([ord(c) for c in i[::-1]]),stack.push(len(i))]
+	exct = lambda r: execute(r, depth+1, r.getStack(stack), data.copy(), impid)
+	ret = lambda: None if sub.type == '{' or not stack else stack.pop()
+
 	try:
-		try:
-			tokens = tokenGenerator(routine)
-			for t in tokens:
-				token = t
-				if last != '?': ifsuccess = False
-				cleanStack(stack)
+		# Run subroutines imported from .stpy files
+		if isinstance(sub, PySubroutine):
+			stack.push(sub.inner(stack, data))
+			return ret()
 
-				# Numbers/Math
-				if t.isdigit(): stack += [int(t)]
-				if t == '+': stack += [stack.pop(-2)+stack.pop()]
-				if t == '-': stack += [stack.pop(-2)-stack.pop()]
-				if t == '*': stack += [stack.pop(-2)*stack.pop()]
-				if t == '/': stack += [stack.pop(-2)//stack.pop()]
-				if t == '%': stack += [stack.pop(-2)%stack.pop()]
-				if t == 'r': stack += [random.randrange(stack.pop())]
+		# Main parsing loop
+		tokens,last,ifsuccess = tokenGenerator(sub.inner),'',False
+		for token in tokens:
+			if last != '?': ifsuccess = False
 
-				# Stack operations
-				if t == '$': stack.pop()
-				if t == '&': stack += [stack.pop()]*2
-				if t == 'b': stack.insert(0, stack.pop())
-				if t == 't': stack += [stack.pop(0)]
-				if t == '@': stack.reverse()
-				if t == 's': stack += [len(stack)]
-				if t == 'e': stack.clear()
+			# Numbers/Math
+			if token.isdigit(): stack.push(token)
+			if token == '+': stack.push(stack.pop(-2)+stack.pop())
+			if token == '-': stack.push(stack.pop(-2)-stack.pop())
+			if token == '*': stack.push(stack.pop(-2)*stack.pop())
+			if token == '/': stack.push(stack.pop(-2)//stack.pop())
+			if token == '%': stack.push(stack.pop(-2)%stack.pop())
+			if token == 'r': stack.push(random.randrange(stack.pop()))
 
-				# IO/String operations
-				if t == 'p': print(stack.pop(),end='')
-				if t == 'c': print(chr(stack.pop()),end='')
-				if t == 'i':
-					i = input()
-					stack += [ord(c) for c in i[::-1]]+[len(i)]
-				if t == '"':
-					i = next(tokens)
-					stack += [ord(c) for c in i[::-1]]+[len(i)]
-				if t == '\\':
-					stack += [ord(next(tokens))]
+			# Stack operations
+			if token == '$': stack.pop()
+			if token == '&': stack.push(stack[-1])
+			if token == 'b': stack.insert(0, stack.pop())
+			if token == 't': stack.push(stack.pop(0))
+			if token == '@': stack.reverse()
+			if token == 's': stack.push(len(stack))
+			if token == 'e': stack.clear()
 
-				# Conditionals/Loops
-				if t == '=': stack += [int(stack.pop(-2) == stack.pop())]
-				if t == '!': stack += [int(stack.pop(-2) != stack.pop())]
-				if t == '<': stack += [int(stack.pop(-2) < stack.pop())]
-				if t == '>': stack += [int(stack.pop(-2) > stack.pop())]
-				if t == '?':
-					r = subrt.consumeSubroutine(tokens, imports, -2)
+			# IO and strings
+			if token == 'p': out(stack.pop())
+			if token == 'c': out(chr(stack.pop()))
+			if token == 'i': strin(input())
+			if token in '"\'': strin(next(tokens))
+			if token == '\\': stack.push(ord(next(tokens)))
 
-					if stack.pop():
-						stack += [qex(r)]
-						ifsuccess = True
-					else: ifsuccess = False
-				if t == ':':
-					if last != '?': raise STSyntaxError(t)
-					r = subrt.consumeSubroutine(tokens, imports, -3)
+			# Conditionals, comparison and loops
+			if token == '=': stack.push(stack.pop(-2) == stack.pop())
+			if token == '!': stack.push(stack.pop(-2) != stack.pop())
+			if token == '<': stack.push(stack.pop(-2) < stack.pop())
+			if token == '>': stack.push(stack.pop(-2) > stack.pop())
+			if token == '?':
+				r = consumeSubroutine(tokens, data, -2)
 
-					if not ifsuccess:
-						stack += [qex(r)]
-				if t == 'w':
-					c = subrt.consumeSubroutine(tokens, imports, -4)
-					r = subrt.consumeSubroutine(tokens, imports, -5)
+				ifsuccess = stack.pop()
+				if ifsuccess:
+					stack.push(exct(r))
+			if token == ':':
+				if last != '?': raise STSyntaxError(token)
+				r = consumeSubroutine(tokens, data, -3)
 
-					while qex(c, True): stack += [qex(r)]
+				if not ifsuccess:
+					stack.push(exct(r))
+			if token == 'w':
+				c = consumeSubroutine(tokens, data, -4)
+				r = consumeSubroutine(tokens, data, -5)
 
-				# Import system
-				if t == 'm':
-					path = ''
-					for i in range(stack.pop()): path += chr(stack.pop())
+				while True:
+					stack.push(exct(c))
+					if not stack.pop(): break
+					stack.push(exct(r))
 
-					Imports.createImport(path=path).doImport(depth+1, imports)
-				if t == '.':
-					r = subrt.consumeSubroutine(tokens, imports, forceImported=True)
+			# Import system
+			if token == 'm':
+				imp = doImport(depth, stack, data)
+				if imp is not None: execute(imp[1], depth+1, data=data['imports'][imp[0]], impid=imp[0])
+			if token == '.':
+				s,i = stack.pop(),stack.pop()
+				if i not in data['imports']: raise STImportRefError(i)
+				if s not in data['imports'][i]: raise STReferenceError('%s:%s'%(i,s))
+				imp = data['imports'][i]
 
-					stack += [execute(r.id, depth+1, r.rt, getNewStack(stack, r.op), imports[r.impid].subrt, imports[r.impid].imports, r.impid)]
+				execute(imp[s], depth+1, imp[s].getStack(stack), imp.copy(), i)
 
-				# Subroutines
-				if t in '{[(':
-					subrt.createSubroutine(stack.pop(), next(tokens), t, impid)
-				if t == '#':
-					id_ = stack.pop()
-					if id_ not in subrt: raise STReferenceError(id_)
+			# Subroutines
+			if token in '{[(':
+				i = stack.pop()
+				data[i] = Subroutine(i, next(tokens), token)
+			if token == '#':
+				i = stack.pop()
+				if i not in data: raise STReferenceError(i)
+				exct(data[i])
 
-					stack += [qex(subrt[id_])]
-				if t == 'd': stack += [depth]
+			last = token
+		return ret()
+	except tuple(exceptionMap) as e:
+		handleException(e, sub, depth, token, impid)
 
-				last = t
-			if shouldret and stack: return stack.pop()
-		except IndexError as e:
-			raise STEmptyStackError()
-		except RuntimeError as e:
-			if 'maximum recursion depth exceeded' in str(e): raise STRecursionDepthError()
-			raise
-		except StopIteration:
-			raise STEndOfRoutineError()
-	except STException as e:
-		raise STException(e.type, e.error, getTraceback(id,depth,token,routine,impid), e.traceback)
-
+# Main entry point
 if __name__ == '__main__':
 	try:
 		if len(sys.argv) < 2: raise STCommandLineError('Expected path, got none')
 
+		# Setting up working directories, getting main file, etc.
 		os.chdir(os.path.dirname(sys.argv[1]))
-		prog = Imports.fileToString(sys.argv[1])
+		prog = stringFromFile(sys.argv[1])
 		if not prog: exit()
+		setStdLibLoc(os.path.dirname(sys.argv[0])+'/../lib/')
 
-		initRuntime(execute)
-		execute(-1, 0, prog)
+		# Execute main file
+		execute(Subroutine(-1, prog, '('))
 
-		shouldPause = True
+		# If '-p' is added to command line arguments, pause at the end of execution
 		if len(sys.argv) > 2:
-			if sys.argv[2] != '-np': raise STCommandLineError('Expected -np, got '+sys.argv[2])
-			shouldPause = False
-		if shouldPause: input('\n\nPress ENTER to continue...')
+			if sys.argv[2] != '-p': raise STCommandLineError('Expected -p, got '+sys.argv[2])
+			input('\n\nPress ENTER to continue...')
 	except KeyboardInterrupt:
 		exit()
 	except STException as e:
