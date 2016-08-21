@@ -1,0 +1,18 @@
+~ stdlib print utilities
+~ Even routines are destructive, odd routines are non-destructive
+
+~ Print string
+0 { w[0>]{bct1-}$ }
+1 [0#]
+
+~ Print string w/ newline
+2 { 0#10c }
+3 [2#]
+
+~ Print entire stack as integers
+4 { w(s0>){p} }
+5 [4#]
+
+~ Print entire stack as characters
+6 { w(s0>){c} }
+7 [6#]
