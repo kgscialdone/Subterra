@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Subterra Interpreter v1.3
 import os, sys, random
 from stparser import tokenGenerator
@@ -111,7 +112,7 @@ if __name__ == '__main__':
 		if len(sys.argv) < 2: raise STCommandLineError('Expected path, got none')
 
 		# Setting up working directories, getting main file, etc.
-		with open(sys.argv[1]) as f:
+		with open(sys.argv[1].strip()) as f:
 			prog = stringFromFile(file=f)
 			if not prog: exit()
 
@@ -123,7 +124,7 @@ if __name__ == '__main__':
 
 		# If '-p' is added to command line arguments, pause at the end of execution
 		if len(sys.argv) > 2:
-			if sys.argv[2] != '-p': raise STCommandLineError('Expected -p, got '+sys.argv[2])
+			if sys.argv[2].strip() != '-p': raise STCommandLineError('Expected -p, got '+sys.argv[2])
 			input('\n\nPress ENTER to continue...')
 	except KeyboardInterrupt:
 		exit()
