@@ -1,5 +1,9 @@
 # Subterra Changelog
 
+### v1.3.1 (Minor patch)
+- Added Unix support
+	- Still not properly tested since I'm on Windows, but it at least sort of works.
+
 ### v1.3
 - Rewrote most of the code from scratch to reduce mess
   - The resulting program should be _almost_ noticeably faster
